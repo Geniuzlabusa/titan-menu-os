@@ -206,3 +206,19 @@ input[type='number'] {
   background-color: rgba(34, 211, 238, 0.2);
   color: white;
 }
+
+/* ── Fusion88 Theme Override ── */
+:root {
+  --brand-primary: #f97316;
+  --brand-dark: #ea580c;
+  --brand-accent: #fbbf24;
+}
+
+.animate-bounce-subtle {
+  animation: bounce-subtle 2.5s ease-in-out infinite;
+}
+
+@keyframes bounce-subtle {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-5px); }
+}

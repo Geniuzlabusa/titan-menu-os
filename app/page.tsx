@@ -165,7 +165,7 @@ function ItemModal({ item, onClose }: { item: MenuItem; onClose: () => void }) {
         </div>
 
         <div className="p-4 border-t border-white/5 flex items-center gap-3">
-          <p className="text-2xl font-bold text-white flex-1">{formatCurrency(item.price)}</p>
+          <p className="text-2xl font-bold text-white flex-1">{formatCurrency(item.price, info?.currency_symbol ?? 'Rs.')}</p>
           <button onClick={() => { addItem(item); onClose(); }}
             className="px-5 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-bold text-sm flex items-center gap-2 transition-all shadow-[0_0_20px_rgba(34,211,238,0.25)] active:scale-95">
             + Add to Order
@@ -213,7 +213,7 @@ function MenuCard({ item, onTap }: { item: MenuItem; onTap: (i: MenuItem) => voi
           </p>
         )}
         <div className="flex items-center justify-between pt-0.5">
-          <span className="text-cyan-400 font-bold">{formatCurrency(item.price)}</span>
+          <span className="text-cyan-400 font-bold">{formatCurrency(item.price, info?.currency_symbol ?? 'Rs.')}</span>
           {qty === 0 ? (
             <button onClick={e => { e.stopPropagation(); addItem(item); }}
               className="w-8 h-8 rounded-full bg-cyan-500 hover:bg-cyan-400 flex items-center justify-center text-slate-900 text-lg font-bold shadow-[0_0_12px_rgba(34,211,238,0.3)] active:scale-90 transition-all">+</button>
@@ -287,7 +287,7 @@ export default function HomePage() {
           <div className="w-16 h-16 rounded-2xl bg-slate-800 border border-cyan-500/30 flex items-center justify-center mx-auto mb-3 shadow-[0_0_30px_rgba(34,211,238,0.12)]">
             <ChefHat className="w-8 h-8 text-cyan-400" strokeWidth={1.5}/>
           </div>
-          <h1 className="text-3xl font-black text-white tracking-tight">{info?.name ?? 'TITAN'}</h1>
+          <h1 className="text-3xl font-black text-white tracking-tight">{info?.name ?? 'Fusion88'}</h1>
           <p className="text-cyan-400/80 text-sm mt-0.5">{info?.tagline ?? 'Extraordinary dining experience'}</p>
           <div className="flex items-center justify-center gap-0.5 mt-2">
             {[1,2,3,4,5].map(s=><Star key={s} className="w-3.5 h-3.5 text-amber-400 fill-amber-400"/>)}
