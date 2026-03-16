@@ -1,4 +1,6 @@
 'use client';
+
+export const dynamic = 'force-dynamic';
 // app/menu/page.tsx
 // TITAN MENU OS — Main Customer Menu Page
 

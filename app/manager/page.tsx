@@ -1,4 +1,6 @@
 'use client';
+
+export const dynamic = 'force-dynamic';
 // app/manager/page.tsx
 // TITAN MENU OS — Manager Portal: Menu Editor + Review Kill Switch
 

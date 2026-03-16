@@ -1,4 +1,6 @@
 'use client';
+
+export const dynamic = 'force-dynamic';
 // app/page.tsx
 // TITAN MENU OS — QR Scan Landing: Customer Registration Gate
 

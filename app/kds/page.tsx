@@ -1,4 +1,6 @@
 'use client';
+
+export const dynamic = 'force-dynamic';
 // app/kds/page.tsx
 // TITAN MENU OS — Kitchen Display System (KDS)
 // Real-time kanban: Pending → Cooking → Completed
