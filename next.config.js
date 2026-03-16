@@ -1,4 +1,5 @@
 // next.config.js — TITAN MENU OS
+// Last updated: force rebuild with env vars baked in
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
