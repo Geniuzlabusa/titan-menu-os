@@ -1,0 +1,208 @@
+/* app/globals.css */
+/* TITAN MENU OS — Global Styles & Design Tokens */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   DESIGN TOKENS — Midnight Glass
+   ============================================================ */
+:root {
+  --bg-base: #0f172a;          /* slate-900 */
+  --bg-panel: #1e293b;         /* slate-800 */
+  --bg-elevated: #334155;      /* slate-700 */
+  --accent-cyan: #22d3ee;      /* cyan-400 */
+  --accent-cyan-dark: #06b6d4; /* cyan-500 */
+  --accent-crimson: #ef4444;   /* red-500 */
+  --accent-amber: #f59e0b;     /* amber-500 */
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;   /* slate-400 */
+  --text-muted: #475569;       /* slate-600 */
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-accent: rgba(34, 211, 238, 0.25);
+  --glass-blur: blur(16px);
+  --shadow-glow-cyan: 0 0 30px rgba(34, 211, 238, 0.2);
+  --shadow-glow-red: 0 0 30px rgba(239, 68, 68, 0.2);
+}
+
+/* ============================================================
+   BASE RESETS
+   ============================================================ */
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================================
+   SCROLLBAR — Midnight Glass Style
+   ============================================================ */
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(34, 211, 238, 0.3);
+}
+
+/* Hide scrollbars where needed */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* ============================================================
+   GLASSMORPHISM UTILITY
+   ============================================================ */
+
+.glass {
+  background: rgba(30, 41, 59, 0.6);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border-subtle);
+}
+
+.glass-strong {
+  background: rgba(30, 41, 59, 0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--border-subtle);
+}
+
+/* ============================================================
+   NEON GLOW ACCENTS
+   ============================================================ */
+
+.glow-cyan {
+  box-shadow: var(--shadow-glow-cyan);
+}
+
+.glow-red {
+  box-shadow: var(--shadow-glow-red);
+}
+
+.text-glow-cyan {
+  text-shadow: 0 0 20px rgba(34, 211, 238, 0.5);
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+
+@keyframes bounce-subtle {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-4px); }
+}
+
+.animate-bounce-subtle {
+  animation: bounce-subtle 2.5s ease-in-out infinite;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.35s ease-out forwards;
+}
+
+@keyframes slide-in-bottom {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-in-bottom {
+  animation: slide-in-bottom 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+@keyframes pulse-border {
+  0%, 100% { border-color: rgba(239, 68, 68, 0.3); }
+  50% { border-color: rgba(239, 68, 68, 0.8); }
+}
+
+.animate-pulse-border {
+  animation: pulse-border 1.5s ease-in-out infinite;
+}
+
+/* ============================================================
+   GRID OVERLAY (ambient bg pattern)
+   ============================================================ */
+
+.grid-overlay {
+  background-image:
+    linear-gradient(rgba(34, 211, 238, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34, 211, 238, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ============================================================
+   NUMBER INPUT — remove arrows
+   ============================================================ */
+
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+}
+
+/* ============================================================
+   FOCUS RING — brand style
+   ============================================================ */
+
+:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ============================================================
+   SELECTION
+   ============================================================ */
+
+::selection {
+  background-color: rgba(34, 211, 238, 0.2);
+  color: white;
+}
