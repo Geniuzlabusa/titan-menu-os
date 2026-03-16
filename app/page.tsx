@@ -81,7 +81,7 @@ function WifiModal({ settings, onClose, onDone }: {
 }
 
 // ── Item Detail Modal ──────────────────────────────────────────────────────
-function ItemModal({ item, onClose }: { item: MenuItem; onClose: () => void }) {
+function ItemModal({ item, onClose, currencySymbol = 'Rs.' }: { item: MenuItem; onClose: () => void; currencySymbol?: string }) {
   const { addItem } = useCart();
   const [imgIdx, setImgIdx] = useState(0);
   const imgs = (item.images?.length > 0) ? item.images : (item.image_url ? [item.image_url] : []);
@@ -165,7 +165,7 @@ function ItemModal({ item, onClose }: { item: MenuItem; onClose: () => void }) {
         </div>
 
         <div className="p-4 border-t border-white/5 flex items-center gap-3">
-          <p className="text-2xl font-bold text-white flex-1">{formatCurrency(item.price, info?.currency_symbol ?? 'Rs.')}</p>
+          <p className="text-2xl font-bold text-white flex-1">{formatCurrency(item.price, currencySymbol)}</p>
           <button onClick={() => { addItem(item); onClose(); }}
             className="px-5 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-bold text-sm flex items-center gap-2 transition-all shadow-[0_0_20px_rgba(34,211,238,0.25)] active:scale-95">
             + Add to Order
@@ -177,7 +177,7 @@ function ItemModal({ item, onClose }: { item: MenuItem; onClose: () => void }) {
 }
 
 // ── Menu Card ──────────────────────────────────────────────────────────────
-function MenuCard({ item, onTap }: { item: MenuItem; onTap: (i: MenuItem) => void }) {
+function MenuCard({ item, onTap, currencySymbol = 'Rs.' }: { item: MenuItem; onTap: (i: MenuItem) => void; currencySymbol?: string }) {
   const { addItem, updateQuantity, state } = useCart();
   const qty = state.items.find(i => i.menu_item.id === item.id)?.quantity ?? 0;
   const img = (item.images?.length > 0) ? item.images[0] : item.image_url;
@@ -213,7 +213,7 @@ function MenuCard({ item, onTap }: { item: MenuItem; onTap: (i: MenuItem) => voi
           </p>
         )}
         <div className="flex items-center justify-between pt-0.5">
-          <span className="text-cyan-400 font-bold">{formatCurrency(item.price, info?.currency_symbol ?? 'Rs.')}</span>
+          <span className="text-cyan-400 font-bold">{formatCurrency(item.price, currencySymbol)}</span>
           {qty === 0 ? (
             <button onClick={e => { e.stopPropagation(); addItem(item); }}
               className="w-8 h-8 rounded-full bg-cyan-500 hover:bg-cyan-400 flex items-center justify-center text-slate-900 text-lg font-bold shadow-[0_0_12px_rgba(34,211,238,0.3)] active:scale-90 transition-all">+</button>
@@ -399,7 +399,7 @@ export default function HomePage() {
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">
-            {filtered.map(item => <MenuCard key={item.id} item={item} onTap={setSelected}/>)}
+            {filtered.map(item => <MenuCard key={item.id} item={item} onTap={setSelected} currencySymbol={info?.currency_symbol ?? 'Rs.'}/>)}
           </div>
         )}
 
@@ -417,7 +417,7 @@ export default function HomePage() {
       </div>
 
       {showWifi   && <WifiModal settings={settings} onClose={() => setShowWifi(false)} onDone={handleWifiDone}/>}
-      {selectedItem && <ItemModal item={selectedItem} onClose={() => setSelected(null)}/>}
+      {selectedItem && <ItemModal item={selectedItem} onClose={() => setSelected(null)} currencySymbol={info?.currency_symbol ?? 'Rs.'}/>}
       <Cart/>
     </main>
   );
