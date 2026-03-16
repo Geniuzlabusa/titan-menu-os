@@ -2,6 +2,7 @@
 // TITAN MENU OS — Supabase client, typed queries, and real-time hooks
 
 import { createClient, RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
+export type { RealtimeChannel };
 
 // ============================================================
 // DATABASE TYPES
