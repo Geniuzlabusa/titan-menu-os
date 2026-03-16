@@ -1,3 +1,6 @@
+# netlify.toml
+# TITAN MENU OS — Netlify build & deploy configuration
+
 [build]
   command   = "npm run build"
   publish   = ".next"
@@ -6,5 +9,7 @@
   NODE_VERSION = "20"
   NPM_VERSION  = "10"
 
+# @netlify/plugin-nextjs handles ALL routing automatically.
+# Do NOT add manual [[redirects]] — they conflict with Next.js App Router.
 [[plugins]]
   package = "@netlify/plugin-nextjs"

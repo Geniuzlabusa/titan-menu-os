@@ -1,229 +1,424 @@
 'use client';
-
 export const dynamic = 'force-dynamic';
-// app/page.tsx
-// TITAN MENU OS — QR Scan Landing: Customer Registration Gate
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Wifi, ChefHat, ArrowRight, Phone, User } from 'lucide-react';
-import { upsertCustomer } from '@/utils/supabase';
+import { useEffect, useState, useCallback } from 'react';
+import Image from 'next/image';
+import {
+  Wifi, Instagram, Facebook, Phone, ChefHat, Star,
+  ArrowRight, Users, Flame, Leaf, Wine, Fish, Beef,
+  Sparkles, Search, X, AlertTriangle, Loader2,
+} from 'lucide-react';
+import {
+  getMenuItems, getRestaurantSettings, upsertCustomer,
+  applyDietaryFilter, groupMenuByCategory, formatCurrency,
+  type MenuItem, type RestaurantSettings, type DietaryFilter,
+} from '@/utils/supabase';
 import { useCart } from '@/context/CartContext';
+import Cart from '@/components/Cart';
 
-interface FormState {
-  name: string;
-  phone: string;
-  tableNumber: string;
-}
+// ── Filter config ──────────────────────────────────────────────────────────
+const DIET_FILTERS: { key: DietaryFilter; label: string; emoji: string; activeColor: string }[] = [
+  { key:'all',           label:'All',         emoji:'✨', activeColor:'bg-cyan-500 text-slate-900' },
+  { key:'vegetarian',    label:'Vegetarian',  emoji:'🌿', activeColor:'bg-green-500 text-white' },
+  { key:'vegan',         label:'Vegan',       emoji:'🌱', activeColor:'bg-emerald-500 text-white' },
+  { key:'seafood',       label:'Seafood',     emoji:'🐟', activeColor:'bg-blue-500 text-white' },
+  { key:'beef',          label:'Beef',        emoji:'🥩', activeColor:'bg-red-600 text-white' },
+  { key:'alcohol',       label:'Alcohol',     emoji:'🍷', activeColor:'bg-purple-500 text-white' },
+  { key:'non-alcoholic', label:'No Alcohol',  emoji:'🥤', activeColor:'bg-amber-500 text-slate-900' },
+  { key:'spicy',         label:'Spicy 🌶',   emoji:'🔥', activeColor:'bg-orange-500 text-white' },
+];
 
-interface FieldError {
-  name?: string;
-  phone?: string;
-  tableNumber?: string;
-}
-
-function validatePhone(phone: string): boolean {
-  // Accept international formats: +1234567890, 0412345678, etc.
-  return /^\+?[\d\s\-]{8,15}$/.test(phone.trim());
-}
-
-export default function LandingPage() {
-  const router = useRouter();
-  const { setCustomer, setTable } = useCart();
-
-  const [form, setForm] = useState<FormState>({ name: '', phone: '', tableNumber: '' });
-  const [errors, setErrors] = useState<FieldError>({});
+// ── WiFi Modal ─────────────────────────────────────────────────────────────
+function WifiModal({ settings, onClose, onDone }: {
+  settings: RestaurantSettings | null;
+  onClose: () => void;
+  onDone: (phone: string) => Promise<void>;
+}) {
+  const [phone, setPhone] = useState('');
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [serverError, setServerError] = useState<string | null>(null);
+  const info = settings?.restaurant_info;
 
-  function validate(): boolean {
-    const newErrors: FieldError = {};
-    if (!form.name.trim() || form.name.trim().length < 2) {
-      newErrors.name = 'Please enter your full name';
-    }
-    if (!validatePhone(form.phone)) {
-      newErrors.phone = 'Enter a valid WhatsApp number';
-    }
-    const table = parseInt(form.tableNumber, 10);
-    if (isNaN(table) || table < 1 || table > 200) {
-      newErrors.tableNumber = 'Enter your table number (1–200)';
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
-    setServerError(null);
-    if (!validate()) return;
-
+    if (!/^\+?[\d\s\-]{8,15}$/.test(phone.trim())) { setError('Enter a valid WhatsApp number'); return; }
     setLoading(true);
-    try {
-      const customer = await upsertCustomer(form.phone.trim(), form.name.trim());
-      setCustomer(customer);
-      setTable(parseInt(form.tableNumber, 10));
-      router.push('/menu');
-    } catch (err) {
-      setServerError('Connection error. Please try again.');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+    try { await onDone(phone.trim()); } catch { setError('Could not connect. Try again.'); }
+    finally { setLoading(false); }
   }
 
   return (
-    <main className="min-h-screen bg-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Ambient background effects */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] rounded-full bg-cyan-500/5 blur-[120px]" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[50vw] h-[50vw] rounded-full bg-cyan-400/4 blur-[100px]" />
-        {/* Grid overlay */}
-        <div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage:
-              'linear-gradient(rgba(34,211,238,1) 1px, transparent 1px), linear-gradient(90deg, rgba(34,211,238,1) 1px, transparent 1px)',
-            backgroundSize: '40px 40px',
-          }}
-        />
-      </div>
-
-      <div className="w-full max-w-sm relative z-10">
-        {/* Logo mark */}
-        <div className="flex flex-col items-center mb-8">
-          <div className="relative mb-4">
-            <div className="w-20 h-20 rounded-2xl bg-slate-800 border border-cyan-500/30 flex items-center justify-center shadow-[0_0_40px_rgba(34,211,238,0.15)]">
-              <ChefHat className="w-10 h-10 text-cyan-400" strokeWidth={1.5} />
-            </div>
-            <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-cyan-400 flex items-center justify-center">
-              <Wifi className="w-3 h-3 text-slate-900" />
-            </div>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm"/>
+      <div className="relative w-full max-w-sm bg-slate-800 border border-white/10 rounded-2xl p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="text-center mb-5">
+          <div className="w-14 h-14 rounded-2xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center mx-auto mb-3">
+            <Wifi className="w-7 h-7 text-cyan-400"/>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">
-            TITAN<span className="text-cyan-400"> MENU</span>
-          </h1>
-          <p className="text-slate-400 text-sm mt-1 text-center">
-            Enter your details to unlock the menu &amp; WiFi
-          </p>
+          <h2 className="text-lg font-bold text-white">Free WiFi Access</h2>
+          <p className="text-slate-400 text-sm mt-1">Connect to <strong className="text-white">{info?.wifi_ssid ?? 'TITAN_GUEST_5G'}</strong> — enter your WhatsApp to receive your password.</p>
+        </div>
+        <form onSubmit={submit} className="space-y-3">
+          <input type="tel" autoComplete="tel" placeholder="+1 555 000 0000"
+            value={phone} onChange={e => { setPhone(e.target.value); setError(''); }}
+            className={`w-full px-4 py-3 bg-slate-900 border rounded-xl text-white placeholder-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50 ${error ? 'border-red-500/60' : 'border-white/10'}`}/>
+          {error && <p className="text-red-400 text-xs">{error}</p>}
+          <button type="submit" disabled={loading}
+            className="w-full py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 disabled:opacity-60 text-slate-900 font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(34,211,238,0.3)]">
+            {loading ? <Loader2 className="w-4 h-4 animate-spin"/> : <Wifi className="w-4 h-4"/>}
+            {loading ? 'Connecting…' : 'Get WiFi Access'}
+          </button>
+          <button type="button" onClick={onClose} className="w-full py-2 text-slate-500 hover:text-slate-300 text-sm">Skip — continue browsing</button>
+        </form>
+        {info?.wifi_pass && (
+          <div className="mt-4 p-3 rounded-xl bg-slate-900/50 border border-white/5 text-center">
+            <p className="text-slate-500 text-xs">WiFi Password: <span className="font-mono text-cyan-400 font-semibold">{info.wifi_pass}</span></p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Item Detail Modal ──────────────────────────────────────────────────────
+function ItemModal({ item, onClose }: { item: MenuItem; onClose: () => void }) {
+  const { addItem } = useCart();
+  const [imgIdx, setImgIdx] = useState(0);
+  const imgs = (item.images?.length > 0) ? item.images : (item.image_url ? [item.image_url] : []);
+  const info = item.nutritional_info;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/75 backdrop-blur-sm"/>
+      <div className="relative w-full sm:max-w-md bg-slate-800 sm:rounded-2xl rounded-t-3xl border border-white/10 shadow-2xl overflow-hidden max-h-[92vh] flex flex-col" onClick={e => e.stopPropagation()}>
+        {/* Gallery */}
+        <div className="relative h-56 shrink-0 bg-slate-700">
+          {imgs.length > 0 && <Image src={imgs[imgIdx]} alt={item.name} fill className="object-cover" sizes="448px"/>}
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-800 via-transparent to-transparent"/>
+          {imgs.length > 1 && (
+            <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5">
+              {imgs.map((_,i) => <button key={i} onClick={() => setImgIdx(i)} className={`h-1.5 rounded-full transition-all ${i===imgIdx ? 'bg-cyan-400 w-5' : 'bg-white/40 w-1.5'}`}/>)}
+            </div>
+          )}
+          <button onClick={onClose} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/70 transition-colors">
+            <X className="w-4 h-4"/>
+          </button>
+          <div className="absolute bottom-3 left-4">
+            <span className="text-xs font-semibold text-cyan-400 uppercase tracking-widest">{item.category}</span>
+            <h2 className="text-xl font-bold text-white">{item.name}</h2>
+          </div>
         </div>
 
-        {/* Glass panel */}
-        <div className="backdrop-blur-xl bg-slate-800/60 border border-white/10 rounded-2xl p-6 shadow-2xl">
-          {serverError && (
-            <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm flex items-start gap-2">
-              <span className="text-red-400 mt-0.5">⚠</span>
-              {serverError}
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-5 space-y-4">
+          {item.description && <p className="text-slate-400 text-sm leading-relaxed">{item.description}</p>}
+
+          {item.portion_size && (
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-900/60 border border-white/5">
+              <Users className="w-5 h-5 text-cyan-400 shrink-0"/>
+              <div>
+                <p className="text-white text-sm font-semibold">{item.portion_size}</p>
+                {item.serves && <p className="text-slate-500 text-xs">Suitable for {item.serves} {item.serves===1?'person':'people'}</p>}
+              </div>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Name */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">
-                Your Name
-              </label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                <input
-                  type="text"
-                  autoComplete="name"
-                  placeholder="e.g. Alex Morgan"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className={`w-full pl-10 pr-4 py-3 bg-slate-900/70 border rounded-xl text-white placeholder-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all ${
-                    errors.name
-                      ? 'border-red-500/60'
-                      : 'border-white/10 focus:border-cyan-500/50'
-                  }`}
-                />
+          {/* Dietary tags */}
+          <div className="flex flex-wrap gap-1.5">
+            {item.is_vegetarian && <span className="px-2.5 py-1 rounded-full bg-green-500/15 border border-green-500/30 text-green-400 text-xs font-medium">🌿 Vegetarian</span>}
+            {item.is_vegan      && <span className="px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-medium">🌱 Vegan</span>}
+            {item.is_spicy      && <span className="px-2.5 py-1 rounded-full bg-orange-500/15 border border-orange-500/30 text-orange-400 text-xs font-medium">🌶 Spicy</span>}
+            {item.is_seafood    && <span className="px-2.5 py-1 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-400 text-xs font-medium">🐟 Seafood</span>}
+            {item.is_beef       && <span className="px-2.5 py-1 rounded-full bg-red-500/15 border border-red-500/30 text-red-400 text-xs font-medium">🥩 Beef</span>}
+            {item.is_alcohol    && <span className="px-2.5 py-1 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-400 text-xs font-medium">🍷 Alcohol</span>}
+          </div>
+
+          {/* Nutrition */}
+          {info?.calories > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Nutrition per serving</p>
+              <div className="grid grid-cols-4 gap-2">
+                {[
+                  {label:'Cal',    val:info.calories, unit:'kcal', color:'text-orange-400'},
+                  {label:'Protein',val:info.protein,  unit:'g',    color:'text-cyan-400'},
+                  {label:'Carbs',  val:info.carbs,    unit:'g',    color:'text-amber-400'},
+                  {label:'Fat',    val:info.fat,      unit:'g',    color:'text-rose-400'},
+                ].map(n => (
+                  <div key={n.label} className="p-2 rounded-xl bg-slate-900/50 border border-white/5 text-center">
+                    <p className={`text-sm font-bold ${n.color}`}>{n.val}<span className="text-[10px] font-normal text-slate-600">{n.unit}</span></p>
+                    <p className="text-slate-600 text-[10px]">{n.label}</p>
+                  </div>
+                ))}
               </div>
-              {errors.name && (
-                <p className="text-red-400 text-xs mt-1">{errors.name}</p>
-              )}
             </div>
+          )}
 
-            {/* WhatsApp */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">
-                WhatsApp Number
-              </label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                <input
-                  type="tel"
-                  autoComplete="tel"
-                  placeholder="+1 555 000 0000"
-                  value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  className={`w-full pl-10 pr-4 py-3 bg-slate-900/70 border rounded-xl text-white placeholder-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all ${
-                    errors.phone
-                      ? 'border-red-500/60'
-                      : 'border-white/10 focus:border-cyan-500/50'
-                  }`}
-                />
+          {info?.allergens?.length > 0 && (
+            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0"/>
+              <div>
+                <p className="text-amber-400 text-xs font-semibold mb-1">Contains allergens</p>
+                <div className="flex flex-wrap gap-1">{info.allergens.map(a => <span key={a} className="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 text-xs capitalize">{a}</span>)}</div>
               </div>
-              {errors.phone && (
-                <p className="text-red-400 text-xs mt-1">{errors.phone}</p>
-              )}
             </div>
-
-            {/* Table Number */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">
-                Table Number
-              </label>
-              <input
-                type="number"
-                min={1}
-                max={200}
-                placeholder="e.g. 7"
-                value={form.tableNumber}
-                onChange={(e) => setForm({ ...form, tableNumber: e.target.value })}
-                className={`w-full px-4 py-3 bg-slate-900/70 border rounded-xl text-white placeholder-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all ${
-                  errors.tableNumber
-                    ? 'border-red-500/60'
-                    : 'border-white/10 focus:border-cyan-500/50'
-                }`}
-              />
-              {errors.tableNumber && (
-                <p className="text-red-400 text-xs mt-1">{errors.tableNumber}</p>
-              )}
-            </div>
-
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full mt-2 py-3.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 disabled:bg-slate-700 disabled:text-slate-500 text-slate-900 font-bold text-sm tracking-wide flex items-center justify-center gap-2 transition-all duration-200 shadow-[0_0_20px_rgba(34,211,238,0.25)] hover:shadow-[0_0_30px_rgba(34,211,238,0.4)] active:scale-[0.98]"
-            >
-              {loading ? (
-                <>
-                  <span className="w-4 h-4 border-2 border-slate-600 border-t-slate-900 rounded-full animate-spin" />
-                  Unlocking…
-                </>
-              ) : (
-                <>
-                  Unlock Menu &amp; WiFi
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </button>
-          </form>
-
-          <p className="text-center text-slate-600 text-xs mt-4">
-            Your info is used only to track your order &amp; send updates.
-          </p>
+          )}
         </div>
 
-        {/* WiFi credential hint (shown post-login in real impl) */}
-        <div className="mt-4 p-3 rounded-xl border border-cyan-500/20 bg-cyan-500/5 flex items-center gap-3">
-          <Wifi className="w-5 h-5 text-cyan-400 shrink-0" />
-          <div>
-            <p className="text-cyan-400 text-xs font-semibold">TITAN_GUEST_5G</p>
-            <p className="text-slate-500 text-xs">Password auto-shared after registration</p>
+        <div className="p-4 border-t border-white/5 flex items-center gap-3">
+          <p className="text-2xl font-bold text-white flex-1">{formatCurrency(item.price)}</p>
+          <button onClick={() => { addItem(item); onClose(); }}
+            className="px-5 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-bold text-sm flex items-center gap-2 transition-all shadow-[0_0_20px_rgba(34,211,238,0.25)] active:scale-95">
+            + Add to Order
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Menu Card ──────────────────────────────────────────────────────────────
+function MenuCard({ item, onTap }: { item: MenuItem; onTap: (i: MenuItem) => void }) {
+  const { addItem, updateQuantity, state } = useCart();
+  const qty = state.items.find(i => i.menu_item.id === item.id)?.quantity ?? 0;
+  const img = (item.images?.length > 0) ? item.images[0] : item.image_url;
+
+  const badges = [
+    item.is_vegetarian && {label:'Veg',     cls:'bg-green-500/20 text-green-400 border-green-500/30'},
+    item.is_vegan      && {label:'Vegan',   cls:'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'},
+    item.is_alcohol    && {label:'Alcohol', cls:'bg-purple-500/20 text-purple-400 border-purple-500/30'},
+    item.is_spicy      && {label:'🌶',      cls:'bg-orange-500/20 text-orange-400 border-orange-500/30'},
+    item.is_seafood    && {label:'Seafood', cls:'bg-blue-500/20 text-blue-400 border-blue-500/30'},
+    item.is_beef       && {label:'Beef',    cls:'bg-red-500/20 text-red-400 border-red-500/30'},
+  ].filter(Boolean) as {label:string; cls:string}[];
+
+  return (
+    <div onClick={() => onTap(item)} className="group bg-slate-800/80 border border-white/8 rounded-2xl overflow-hidden cursor-pointer hover:border-cyan-500/30 transition-all duration-300 hover:shadow-[0_0_24px_rgba(34,211,238,0.08)] active:scale-[0.98]">
+      <div className="relative h-44 overflow-hidden bg-slate-700">
+        {img && <Image src={img} alt={item.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width:640px) 50vw, 33vw"/>}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-800/80 via-transparent to-transparent"/>
+        {item.images?.length > 1 && (
+          <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm rounded-full px-2 py-0.5 text-[10px] text-white font-medium">+{item.images.length-1}</div>
+        )}
+      </div>
+      <div className="p-3 space-y-1.5">
+        <p className="text-white font-semibold text-sm leading-tight line-clamp-1">{item.name}</p>
+        {badges.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {badges.slice(0,2).map(b => <span key={b.label} className={`px-1.5 py-0.5 rounded text-[10px] font-medium border ${b.cls}`}>{b.label}</span>)}
+          </div>
+        )}
+        {item.portion_size && (
+          <p className="text-slate-600 text-xs flex items-center gap-1 line-clamp-1">
+            <Users className="w-3 h-3 shrink-0"/>{item.portion_size}
+          </p>
+        )}
+        <div className="flex items-center justify-between pt-0.5">
+          <span className="text-cyan-400 font-bold">{formatCurrency(item.price)}</span>
+          {qty === 0 ? (
+            <button onClick={e => { e.stopPropagation(); addItem(item); }}
+              className="w-8 h-8 rounded-full bg-cyan-500 hover:bg-cyan-400 flex items-center justify-center text-slate-900 text-lg font-bold shadow-[0_0_12px_rgba(34,211,238,0.3)] active:scale-90 transition-all">+</button>
+          ) : (
+            <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
+              <button onClick={() => updateQuantity(item.id,-1)} className="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-white text-base font-bold hover:bg-slate-600">−</button>
+              <span className="text-white font-bold text-sm w-4 text-center">{qty}</span>
+              <button onClick={() => addItem(item)} className="w-7 h-7 rounded-full bg-cyan-500 flex items-center justify-center text-slate-900 text-base font-bold hover:bg-cyan-400">+</button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Main Page ──────────────────────────────────────────────────────────────
+export default function HomePage() {
+  const { setCustomer, state } = useCart();
+  const [items, setItems]             = useState<MenuItem[]>([]);
+  const [settings, setSettings]       = useState<RestaurantSettings | null>(null);
+  const [loading, setLoading]         = useState(true);
+  const [activeCategory, setCategory] = useState('All');
+  const [activeFilter, setFilter]     = useState<DietaryFilter>('all');
+  const [search, setSearch]           = useState('');
+  const [selectedItem, setSelected]   = useState<MenuItem | null>(null);
+  const [showWifi, setShowWifi]       = useState(false);
+  const [wifiDone, setWifiDone]       = useState(false);
+
+  useEffect(() => {
+    Promise.all([getMenuItems(), getRestaurantSettings()])
+      .then(([m, s]) => { setItems(m); setSettings(s); })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  const categories = ['All', ...Array.from(new Set(items.map(i => i.category)))];
+
+  const filtered = (() => {
+    let r = applyDietaryFilter(items, activeFilter);
+    if (activeCategory !== 'All') r = r.filter(i => i.category === activeCategory);
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      r = r.filter(i => i.name.toLowerCase().includes(q) || (i.description??'').toLowerCase().includes(q) || (i.tags??[]).some(t => t.toLowerCase().includes(q)));
+    }
+    return r;
+  })();
+
+  const handleWifiDone = useCallback(async (phone: string) => {
+    const customer = await upsertCustomer(phone, 'Guest');
+    setCustomer(customer);
+    setWifiDone(true);
+    setShowWifi(false);
+  }, [setCustomer]);
+
+  const info   = settings?.restaurant_info;
+  const social = settings?.social_links;
+  const hasActiveFilters = activeFilter !== 'all' || search || activeCategory !== 'All';
+
+  return (
+    <main className="min-h-screen bg-slate-900 pb-36">
+      {/* Ambient */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute -top-32 -right-32 w-[60vw] h-[60vw] rounded-full bg-cyan-500/4 blur-[120px]"/>
+        <div className="absolute -bottom-20 -left-20 w-[45vw] h-[45vw] rounded-full bg-purple-500/3 blur-[100px]"/>
+      </div>
+
+      {/* ── Hero ── */}
+      <div className="relative bg-gradient-to-b from-slate-800/60 to-slate-900 border-b border-white/5">
+        <div className="max-w-lg mx-auto px-4 pt-10 pb-6 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-slate-800 border border-cyan-500/30 flex items-center justify-center mx-auto mb-3 shadow-[0_0_30px_rgba(34,211,238,0.12)]">
+            <ChefHat className="w-8 h-8 text-cyan-400" strokeWidth={1.5}/>
+          </div>
+          <h1 className="text-3xl font-black text-white tracking-tight">{info?.name ?? 'TITAN'}</h1>
+          <p className="text-cyan-400/80 text-sm mt-0.5">{info?.tagline ?? 'Extraordinary dining experience'}</p>
+          <div className="flex items-center justify-center gap-0.5 mt-2">
+            {[1,2,3,4,5].map(s=><Star key={s} className="w-3.5 h-3.5 text-amber-400 fill-amber-400"/>)}
+            <span className="text-slate-500 text-xs ml-1.5">Premium dining</span>
+          </div>
+
+          {/* Social links */}
+          <div className="flex items-center justify-center gap-2.5 mt-4">
+            {social?.instagram && (
+              <a href={social.instagram} target="_blank" rel="noopener" className="w-9 h-9 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center text-slate-400 hover:text-pink-400 hover:border-pink-400/40 transition-all" aria-label="Instagram">
+                <Instagram className="w-4 h-4"/>
+              </a>
+            )}
+            {social?.facebook && (
+              <a href={social.facebook} target="_blank" rel="noopener" className="w-9 h-9 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center text-slate-400 hover:text-blue-400 hover:border-blue-400/40 transition-all" aria-label="Facebook">
+                <Facebook className="w-4 h-4"/>
+              </a>
+            )}
+            {social?.tiktok && (
+              <a href={social.tiktok} target="_blank" rel="noopener" className="w-9 h-9 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:border-white/30 transition-all" aria-label="TikTok">
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.75a4.85 4.85 0 01-1.01-.06z"/></svg>
+              </a>
+            )}
+            {social?.whatsapp && (
+              <a href={social.whatsapp} target="_blank" rel="noopener" className="w-9 h-9 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center text-slate-400 hover:text-green-400 hover:border-green-400/40 transition-all" aria-label="WhatsApp">
+                <Phone className="w-4 h-4"/>
+              </a>
+            )}
+            {/* WiFi button */}
+            <button onClick={() => setShowWifi(true)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-full border text-xs font-medium transition-all ${wifiDone ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-slate-800 border-cyan-500/30 text-cyan-400 hover:bg-slate-700'}`}>
+              <Wifi className="w-3.5 h-3.5"/>
+              {wifiDone ? 'Connected ✓' : 'Free WiFi'}
+            </button>
           </div>
         </div>
       </div>
+
+      {/* ── Filters + Menu ── */}
+      <div className="max-w-lg mx-auto px-4 pt-4">
+
+        {/* Search */}
+        <div className="relative mb-3">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none"/>
+          <input type="text" placeholder="Search dishes, ingredients, tags…"
+            value={search} onChange={e => setSearch(e.target.value)}
+            className="w-full pl-10 pr-10 py-2.5 bg-slate-800/80 border border-white/10 rounded-xl text-white placeholder-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40"/>
+          {search && (
+            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
+              <X className="w-4 h-4"/>
+            </button>
+          )}
+        </div>
+
+        {/* Dietary filter pills */}
+        <div className="flex gap-2 overflow-x-auto scrollbar-none pb-2 mb-2">
+          {DIET_FILTERS.map(f => (
+            <button key={f.key} onClick={() => setFilter(f.key)}
+              className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 ${
+                activeFilter === f.key
+                  ? f.activeColor + ' border-transparent shadow-lg'
+                  : 'bg-slate-800/70 text-slate-400 border-white/10 hover:text-white'
+              }`}>
+              <span>{f.emoji}</span>{f.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Category tabs */}
+        <div className="flex gap-2 overflow-x-auto scrollbar-none pb-3 mb-3 border-b border-white/5">
+          {categories.map(cat => (
+            <button key={cat} onClick={() => setCategory(cat)}
+              className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                activeCategory === cat ? 'bg-slate-700 text-white border border-white/20' : 'text-slate-500 hover:text-slate-300'
+              }`}>{cat}</button>
+          ))}
+        </div>
+
+        {/* Results bar */}
+        <div className="flex items-center justify-between mb-3 min-h-[20px]">
+          <p className="text-slate-600 text-xs">{filtered.length} item{filtered.length !== 1 ? 's' : ''}</p>
+          {hasActiveFilters && (
+            <button onClick={() => { setFilter('all'); setSearch(''); setCategory('All'); }}
+              className="text-cyan-400 text-xs hover:text-cyan-300 flex items-center gap-1">
+              <X className="w-3 h-3"/>Clear filters
+            </button>
+          )}
+        </div>
+
+        {/* Grid */}
+        {loading ? (
+          <div className="grid grid-cols-2 gap-3">
+            {Array.from({length:6}).map((_,i) => (
+              <div key={i} className="rounded-2xl bg-slate-800 overflow-hidden animate-pulse">
+                <div className="h-44 bg-slate-700/60"/>
+                <div className="p-3 space-y-2">
+                  <div className="h-4 bg-slate-700 rounded w-3/4"/>
+                  <div className="h-3 bg-slate-700/50 rounded w-1/2"/>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="py-20 text-center space-y-2">
+            <p className="text-4xl">🍽️</p>
+            <p className="text-slate-500 text-sm">No items match your search</p>
+            <button onClick={() => { setFilter('all'); setSearch(''); setCategory('All'); }}
+              className="text-cyan-400 text-sm hover:text-cyan-300">Show all items</button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            {filtered.map(item => <MenuCard key={item.id} item={item} onTap={setSelected}/>)}
+          </div>
+        )}
+
+        {/* Order CTA if items in cart but no customer */}
+        {!state.customer && state.items.length > 0 && (
+          <div className="mt-6 p-4 rounded-2xl bg-cyan-500/10 border border-cyan-500/20">
+            <p className="text-white text-sm font-semibold mb-1">Ready to place your order?</p>
+            <p className="text-slate-400 text-xs mb-3">Add your WhatsApp number so we can confirm and track it.</p>
+            <button onClick={() => setShowWifi(true)}
+              className="w-full py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-bold text-sm flex items-center justify-center gap-2 transition-all">
+              Add My Number <ArrowRight className="w-4 h-4"/>
+            </button>
+          </div>
+        )}
+      </div>
+
+      {showWifi   && <WifiModal settings={settings} onClose={() => setShowWifi(false)} onDone={handleWifiDone}/>}
+      {selectedItem && <ItemModal item={selectedItem} onClose={() => setSelected(null)}/>}
+      <Cart/>
     </main>
   );
 }

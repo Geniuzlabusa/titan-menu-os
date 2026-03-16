@@ -191,10 +191,12 @@ function ReviewShield({ orderId, tableNumber, onDismiss }: ReviewShieldProps) {
 // ============================================================
 
 export default function Cart() {
-  const { state, updateQuantity, removeItem, clearCart, itemCount, cartTotal } = useCart();
+  const { state, updateQuantity, removeItem, clearCart, setTable, itemCount, cartTotal } = useCart();
   const [open, setOpen] = useState(false);
   const [view, setView] = useState<CartView>('cart');
   const [lastOrderId, setLastOrderId] = useState<string | null>(null);
+  const [tableInput, setTableInput] = useState('');
+  const [tableError, setTableError] = useState('');
   const [processing, setProcessing] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -202,12 +204,23 @@ export default function Cart() {
   const hasItems = itemCount > 0;
 
   const handlePlaceOrder = useCallback(async () => {
-    if (!state.customer || state.table_number === 0 || state.items.length === 0) return;
+    if (!state.customer || state.items.length === 0) return;
+    // Validate / resolve table number
+    let tableNum = state.table_number;
+    if (tableNum === 0) {
+      const parsed = parseInt(tableInput, 10);
+      if (isNaN(parsed) || parsed < 1 || parsed > 200) {
+        setTableError('Please enter your table number (1–200)');
+        return;
+      }
+      tableNum = parsed;
+      setTable(tableNum);
+    }
     setProcessing(true);
     setErrorMsg(null);
     try {
       const order = await createOrder(
-        state.table_number,
+        tableNum,
         state.customer.id,
         state.items
       );
@@ -221,7 +234,7 @@ export default function Cart() {
     } finally {
       setProcessing(false);
     }
-  }, [state, clearCart]);
+  }, [state, tableInput, setTable, clearCart]);
 
   function resetFlow() {
     setView('cart');
@@ -350,15 +363,27 @@ export default function Cart() {
               <div className="flex flex-col flex-1 overflow-hidden">
                 <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
                   {/* Table + Customer */}
-                  <div className="p-3 rounded-xl bg-slate-900/50 border border-white/5 grid grid-cols-2 gap-3">
-                    <div>
-                      <p className="text-slate-500 text-xs uppercase tracking-widest mb-0.5">Table</p>
-                      <p className="text-white font-bold">#{state.table_number}</p>
-                    </div>
-                    <div>
-                      <p className="text-slate-500 text-xs uppercase tracking-widest mb-0.5">Guest</p>
-                      <p className="text-white font-bold truncate">{state.customer?.name ?? '—'}</p>
-                    </div>
+                  <div className="p-3 rounded-xl bg-slate-900/50 border border-white/5 space-y-3">
+                    {state.table_number === 0 ? (
+                      <div>
+                        <p className="text-slate-400 text-xs font-semibold mb-1.5">Your table number</p>
+                        <input type="number" min={1} max={200} placeholder="e.g. 7"
+                          value={tableInput} onChange={e => { setTableInput(e.target.value); setTableError(''); }}
+                          className={`w-full px-3 py-2.5 bg-slate-800 border rounded-xl text-white placeholder-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50 ${tableError ? 'border-red-500/60' : 'border-white/10'}`}/>
+                        {tableError && <p className="text-red-400 text-xs mt-1">{tableError}</p>}
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <p className="text-slate-500 text-xs uppercase tracking-widest mb-0.5">Table</p>
+                          <p className="text-white font-bold">#{state.table_number}</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-500 text-xs uppercase tracking-widest mb-0.5">Guest</p>
+                          <p className="text-white font-bold truncate">{state.customer?.name ?? '—'}</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Bill breakdown */}
