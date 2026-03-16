@@ -1,6 +1,3 @@
-# netlify.toml
-# TITAN MENU OS — Netlify build & deploy configuration
-
 [build]
   command   = "npm run build"
   publish   = ".next"
@@ -11,14 +8,3 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
-
-# Redirect all unmatched routes to Next.js (handles App Router)
-[[redirects]]
-  from   = "/*"
-  to     = "/.netlify/functions/___netlify-handler"
-  status = 200
-
-[dev]
-  command   = "npm run dev"
-  port      = 3000
-  targetPort = 3000
