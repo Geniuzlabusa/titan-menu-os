@@ -21,7 +21,7 @@ import {
   Clock,
 } from 'lucide-react';
 import {
-  getAllMenuItemsForStaff,
+  getAllMenuItems,
   toggleMenuItemAvailability,
   getBadReviewsToday,
   formatCurrency,
@@ -257,7 +257,7 @@ export default function ManagerPage() {
   const fetchMenu = useCallback(async () => {
     setMenuLoading(true);
     try {
-      const data = await getAllMenuItemsForStaff();
+      const data = await getAllMenuItems();
       setMenuItems(data);
     } catch (err) {
       console.error(err);

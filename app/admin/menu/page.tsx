@@ -259,7 +259,7 @@ export default function MenuEditor(){
 
       {editItem&&<ItemForm item={editItem} onSave={handleSave} onClose={()=>setEditItem(null)}/>}
 
-      <style jsx global>{`
+      <style>{`
         .input-field{padding:10px 14px;background:rgba(15,13,12,0.7);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:white;font-size:13px;outline:none;}
         .input-field:focus{ring:2px;ring-color:rgba(249,115,22,0.5);border-color:rgba(249,115,22,0.4);}
         .label-xs{display:block;font-size:11px;font-weight:600;color:rgb(100,116,139);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;}

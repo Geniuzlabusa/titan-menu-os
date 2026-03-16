@@ -84,7 +84,7 @@ export default function SettingsPage(){
             ].map(f=>(
               <div key={f.k}>
                 <label className="label-xs">{f.label}</label>
-                <input value={(settings.restaurant_info as Record<string,string>)[f.k]||''} onChange={e=>setInfo(f.k,e.target.value)}
+                <input value={(settings.restaurant_info as unknown as Record<string,string>)[f.k]||''} onChange={e=>setInfo(f.k,e.target.value)}
                   placeholder={f.placeholder} className="input-field w-full"/>
               </div>
             ))}
@@ -124,10 +124,10 @@ export default function SettingsPage(){
                 {k:'panel_color',label:'Panel Color'},
               ].map(f=>(
                 <div key={f.k} className="flex items-center gap-3 p-3 rounded-xl bg-[#1c1917] border border-white/8">
-                  <input type="color" value={(settings.theme as Record<string,string>)[f.k]||'#f97316'} onChange={e=>setTheme(f.k,e.target.value)} className="w-10 h-10 rounded-xl cursor-pointer border-0 bg-transparent"/>
+                  <input type="color" value={(settings.theme as unknown as Record<string,string>)[f.k]||'#f97316'} onChange={e=>setTheme(f.k,e.target.value)} className="w-10 h-10 rounded-xl cursor-pointer border-0 bg-transparent"/>
                   <div>
                     <p className="text-white text-xs font-medium">{f.label}</p>
-                    <p className="text-slate-500 text-xs font-mono">{(settings.theme as Record<string,string>)[f.k]||'#f97316'}</p>
+                    <p className="text-slate-500 text-xs font-mono">{(settings.theme as unknown as Record<string,string>)[f.k]||'#f97316'}</p>
                   </div>
                 </div>
               ))}
@@ -139,7 +139,7 @@ export default function SettingsPage(){
             ].map(f=>(
               <div key={f.k}>
                 <label className="label-xs">{f.label}</label>
-                <input value={(settings.theme as Record<string,string>)[f.k]||''} onChange={e=>setTheme(f.k,e.target.value)} placeholder={f.placeholder} className="input-field w-full"/>
+                <input value={(settings.theme as unknown as Record<string,string>)[f.k]||''} onChange={e=>setTheme(f.k,e.target.value)} placeholder={f.placeholder} className="input-field w-full"/>
               </div>
             ))}
           </div>
@@ -156,7 +156,7 @@ export default function SettingsPage(){
             ].map(f=>(
               <div key={f.k}>
                 <label className="label-xs">{f.label}</label>
-                <input value={(settings.social_links as Record<string,string>)[f.k]||''} onChange={e=>setSocial(f.k,e.target.value)}
+                <input value={(settings.social_links as unknown as Record<string,string>)[f.k]||''} onChange={e=>setSocial(f.k,e.target.value)}
                   placeholder={f.placeholder} className="input-field w-full"/>
               </div>
             ))}
@@ -164,7 +164,7 @@ export default function SettingsPage(){
         )}
       </div>
 
-      <style jsx global>{`
+      <style>{`
         .input-field{padding:10px 14px;background:rgba(15,13,12,0.7);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:white;font-size:13px;outline:none;width:100%;}
         .label-xs{display:block;font-size:11px;font-weight:600;color:rgb(100,116,139);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;}
       `}</style>
