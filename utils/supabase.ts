@@ -45,6 +45,7 @@ export type DietaryFilter = 'all'|'vegetarian'|'vegan'|'seafood'|'beef'|'alcohol
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://xytndzkoqriqyzinoxgc.supabase.co';
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh5dG5kemtvcXJpcXl6aW5veGdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NDMxNjMsImV4cCI6MjA4OTIxOTE2M30.JNzCHhKpeHh4Anu-ct3GrB8YrayfQG7adkRzlpFcua4';
 let _client:SupabaseClient|null=null;
+export function getSupabaseClient():SupabaseClient { return getClient(); }
 function getClient():SupabaseClient {
   if(!_client) _client=createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{realtime:{params:{eventsPerSecond:20}}});
   return _client;
